@@ -2,7 +2,7 @@
   "profiles": {
     "main": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\juraj.dobrota.SYNERGON\\source\\repos\\main\\main\\CrhToSyn_collectALLSegment+NonElectronic_testNewUpdateJuro.csv"
+      "commandLineArgs": "C:\\Users\\juraj.dobrota.SYNERGON\\source\\repos\\main\\main\\CrhToSyn_NewDevTest.csv"
     }
   }
 }

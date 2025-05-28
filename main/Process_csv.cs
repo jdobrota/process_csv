@@ -4,7 +4,6 @@ using CsvHelper.Configuration.Attributes;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -14,7 +13,7 @@ namespace main
     class CSV_Record
     {
         [Name("InvoiceNumber")]
-        public long InvoiceNumber { get; set; }
+        public string InvoiceNumber { get; set; }
         [Name("DeliveryNoteNumber")]
         public string DeliveryNoteNumber { get; set; }
         [Name("CompanyCode")]
@@ -22,7 +21,7 @@ namespace main
         [Name("SalesOrg")]
         public string SalesOrg { get; set; }
         [Name("Division")]
-        public int Division { get; set; }
+        public string Division { get; set; }
         [Name("SoldToNumber")]
         public string SoldToNumber{ get; set; }
         [Name("SoldToName")]
@@ -49,15 +48,17 @@ namespace main
 
     class Process_csv
     {
-        public static string DivSwitch(int num)
+        public static string DivSwitch(string num)
         {
             switch (num)
             {
-                case 10: return "CEM";
-                case 11: return "AFR";
-                case 30: return "AGG";
-                case 40: return "RMC";
-                case 99: return "CEM";
+                case "10": return "CEM";
+                case "11": return "AFR";
+                case "20": return "MIC";
+                case "30": return "AGG";
+                case "40": return "RMC";
+                case "50": return "PRE";
+                case "99": return "CEM";
                 default: return "";
             }
         }
@@ -69,22 +70,15 @@ namespace main
                 case "SK": return "SVK";
                 case "HU": return "HUN";
                 case "RS": return "SRB";
-                case "AT": return "SVK";
+                case "AT": return "AUT";
                 case "CZ": return "SVK";
                 case "DE": return "AUT";
+                case "PL": return "SVK";
                 default: return "";
             }
         }
 
-        public static string RandNum()
-        {
-            Random rnd = new Random();
-            string random = "";
-            for (int i = 0; i < 10; i++)
-                random += $"{rnd.Next(0, 10)}";
 
-            return random;
-        }
         static void Main(string[] args)
         {
             if (!File.Exists(args[0]))
@@ -93,7 +87,7 @@ namespace main
                 return;
             }
 
-            var config = new CsvConfiguration(CultureInfo.CurrentCulture) { Delimiter = ";", Encoding = Encoding.UTF8 };
+            var config = new CsvConfiguration(CultureInfo.CurrentCulture) { Delimiter = ";", Encoding = Encoding.UTF8, BadDataFound = null };
 
             using (var reader = new StreamReader(args[0]))
             using (var csv = new CsvReader(reader, config))
@@ -104,8 +98,6 @@ namespace main
                 foreach (var rec in records)
                 {
                     string name = rec.CompanyCode.Substring(0, 2);
-
-                    if (name == "AT") { name = "AU"; }
 
                     //PDF z InvoiceNumber
                     if (!File.Exists($"{path}\\{name}_pdf\\{rec.InvoiceNumber}.pdf") && rec.SoldToStatus != String.Empty)
@@ -143,14 +135,13 @@ namespace main
                     }
 
                     //PDF z DeliveryNotes podla Division a Country
-                    string rnd = RandNum();
-                    if (!File.Exists($"{path}\\DeliveryNotes\\{DivSwitch(rec.Division)}\\{CountrySwitch(rec.CompanyCode.Substring(0, 2))}\\{rec.DeliveryNoteNumber}_{rnd}.pdf"))
+                    if (!File.Exists($"{path}\\DeliveryNotes\\{DivSwitch(rec.Division)}\\{CountrySwitch(rec.CompanyCode.Substring(0, 2))}\\{rec.DeliveryNoteNumber}.pdf"))
                     {
                         if (!Directory.Exists($"{path}\\DeliveryNotes\\{DivSwitch(rec.Division)}\\{CountrySwitch(rec.CompanyCode.Substring(0, 2))}"))
                         {
                             Directory.CreateDirectory($"{path}\\DeliveryNotes\\{DivSwitch(rec.Division)}\\{CountrySwitch(rec.CompanyCode.Substring(0, 2))}");
                         }
-                        using (FileStream fs = new FileStream($"{path}\\DeliveryNotes\\{DivSwitch(rec.Division)}\\{CountrySwitch(rec.CompanyCode.Substring(0, 2))}\\{rec.DeliveryNoteNumber}_{rnd}.pdf", FileMode.Create, FileAccess.Write))
+                        using (FileStream fs = new FileStream($"{path}\\DeliveryNotes\\{DivSwitch(rec.Division)}\\{CountrySwitch(rec.CompanyCode.Substring(0, 2))}\\{rec.DeliveryNoteNumber}.pdf", FileMode.Create, FileAccess.Write))
                         {
                             fs.SetLength(50000);
                             Document doc = new Document(PageSize.A4);
